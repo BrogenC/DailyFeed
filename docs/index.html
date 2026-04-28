@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Feed Subscriptions</title>
+  <style>
+    :root {
+      --bg: #302f2d;
+      --card: #3b3937;
+      --accent: #ff7d26;
+      --accent-strong: #ff5a00;
+      --text: #ffffff;
+      --muted: #cfc7c2;
+      --line: rgba(255, 125, 38, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(255, 125, 38, 0.12), transparent 34%),
+        linear-gradient(180deg, #262523 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 36px 18px;
+    }
+
+    .shell { width: min(760px, 100%); }
+
+    .hero {
+      background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
+      margin-bottom: 22px;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 5vw, 40px);
+      font-weight: 800;
+    }
+
+    .hero p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 16px;
+      max-width: 60ch;
+      line-height: 1.45;
+    }
+
+    .panel, .info-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+    }
+
+    .panel { margin-bottom: 18px; }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 12px;
+      color: #ffb27a;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .panel h2, .info-card h3 {
+      margin: 0 0 10px;
+      color: var(--text);
+    }
+
+    .muted {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .field { margin: 18px 0 16px; }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    input[type="email"] {
+      width: 100%;
+      border: 1px solid rgba(255, 125, 38, 0.22);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    input[type="email"]:focus {
+      border-color: rgba(255, 125, 38, 0.62);
+      box-shadow: 0 0 0 3px rgba(255, 125, 38, 0.14);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 18px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .subscribe {
+      background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+      color: #fff;
+    }
+
+    .unsubscribe {
+      background: #262523;
+      color: #fff;
+      border: 1px solid rgba(255, 125, 38, 0.22);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    code {
+      color: #ffb27a;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <h1>Daily Feed</h1>
+      <p>Subscribe or unsubscribe from the morning brief. Requests are routed through GitHub and processed by Actions, so the list stays versioned and simple.</p>
+    </section>
+
+    <section class="panel">
+      <div class="eyebrow">Subscription Console</div>
+      <h2>Manage your delivery</h2>
+      <p class="muted">Enter your email, then choose whether you want to subscribe or unsubscribe. GitHub will open a prefilled request for you and the automation will update <code>subscribers.txt</code>.</p>
+
+      <div class="field">
+        <label for="email">Email address</label>
+        <input id="email" type="email" placeholder="you@example.com" required />
+      </div>
+
+      <div class="actions">
+        <button class="subscribe" id="subscribeBtn" type="button">Subscribe</button>
+        <button class="unsubscribe" id="unsubscribeBtn" type="button">Unsubscribe</button>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="info-card">
+        <div class="eyebrow">How It Works</div>
+        <h3>Issue-driven updates</h3>
+        <p class="muted">Each button opens a GitHub issue request. A workflow reads the request, updates the subscriber file, commits the change, and closes the issue automatically.</p>
+      </article>
+      <article class="info-card">
+        <div class="eyebrow">Note</div>
+        <h3>GitHub sign-in required</h3>
+        <p class="muted">Because everything runs inside GitHub, users need to be signed into GitHub to submit the request issue.</p>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const repoIssueBase = "https://github.com/BrogenC/DailyFeed/issues/new";
+
+    function openRequest(type) {
+      const email = document.getElementById("email").value.trim();
+      if (!email) {
+        alert("Enter an email address first.");
+        return;
+      }
+
+      const title = type === "subscribe"
+        ? `Subscribe: ${email}`
+        : `Unsubscribe: ${email}`;
+      const labels = type === "subscribe"
+        ? "subscribe-request"
+        : "unsubscribe-request";
+      const body = `email: ${email}`;
+
+      const url = `${repoIssueBase}?labels=${encodeURIComponent(labels)}&title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+      window.open(url, "_blank");
+    }
+
+    document.getElementById("subscribeBtn").addEventListener("click", () => openRequest("subscribe"));
+    document.getElementById("unsubscribeBtn").addEventListener("click", () => openRequest("unsubscribe"));
+  </script>
+</body>
+</html>

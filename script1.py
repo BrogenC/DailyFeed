@@ -24,6 +24,7 @@ DAILY_FEED_ICON_URL = os.getenv("DAILY_FEED_ICON_URL", "")
 SEND_EMAIL = os.getenv("SEND_EMAIL", "false").lower() == "true"
 SHOW_GRAPHS = os.getenv("SHOW_GRAPHS", "false").lower() == "true"
 REPORTS_DIR = Path("report_assets")
+SUBSCRIBERS_FILE = Path("subscribers.txt")
 
 if not DAILY_FEED_ICON_URL:
     DAILY_FEED_ICON_URL = "https://raw.githubusercontent.com/BrogenC/DailyFeed/main/DailyFeedIcon.png"
@@ -142,6 +143,7 @@ def initialize_tables(connection):
 
 conn = sqlite3.connect("stocks.db")
 initialize_tables(conn)
+sync_subscribers_from_file(conn)
 
 for i, ticker in enumerate(tickers):
     write_mode = "replace" if i == 0 else "append"
@@ -372,6 +374,30 @@ def drop_subscriber(connection, email):
         """,
         (email,),
     )
+    connection.commit()
+
+
+def sync_subscribers_from_file(connection, subscribers_file=SUBSCRIBERS_FILE):
+    connection.execute("DELETE FROM email_subscribers")
+
+    if not subscribers_file.exists():
+        connection.commit()
+        return
+
+    with subscribers_file.open("r", encoding="utf-8") as file_handle:
+        for line in file_handle:
+            email = line.strip()
+            if not email or email.startswith("#"):
+                continue
+
+            connection.execute(
+                """
+                INSERT OR IGNORE INTO email_subscribers (email, created_at)
+                VALUES (?, ?)
+                """,
+                (email, datetime.now(ZoneInfo("America/New_York")).isoformat()),
+            )
+
     connection.commit()
 
 
