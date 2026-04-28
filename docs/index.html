@@ -150,13 +150,13 @@
   <main class="shell">
     <section class="hero">
       <h1>Daily Feed</h1>
-      <p>Subscribe or unsubscribe from the morning brief. Requests are routed through GitHub and processed by Actions, so the list stays versioned and simple.</p>
+      <p>Subscribe or unsubscribe from Daily Feed. Though I don't know why you'd EVER unsubscribe.</p>
     </section>
 
     <section class="panel">
       <div class="eyebrow">Subscription Console</div>
       <h2>Manage your delivery</h2>
-      <p class="muted">Enter your email, then choose whether you want to subscribe or unsubscribe. GitHub will open a prefilled request for you and the automation will update <code>subscribers.txt</code>.</p>
+      <p class="muted">Enter your email.<code>subscribers.txt</code>.</p>
 
       <div class="field">
         <label for="email">Email address</label>
@@ -169,18 +169,7 @@
       </div>
     </section>
 
-    <section class="grid">
-      <article class="info-card">
-        <div class="eyebrow">How It Works</div>
-        <h3>Issue-driven updates</h3>
-        <p class="muted">Each button opens a GitHub issue request. A workflow reads the request, updates the subscriber file, commits the change, and closes the issue automatically.</p>
-      </article>
-      <article class="info-card">
-        <div class="eyebrow">Note</div>
-        <h3>GitHub sign-in required</h3>
-        <p class="muted">Because everything runs inside GitHub, users need to be signed into GitHub to submit the request issue.</p>
-      </article>
-    </section>
+
   </main>
 
   <script>
@@ -189,7 +178,7 @@
     function openRequest(type) {
       const email = document.getElementById("email").value.trim();
       if (!email) {
-        alert("Enter an email address first.");
+        alert("Enter an email address.");
         return;
       }
 
