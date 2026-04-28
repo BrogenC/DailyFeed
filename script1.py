@@ -13,18 +13,20 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import yfinance as yf
 
-# APP PASSWORD:  wlihhfbvohoumvrm
-# EMAIL: brogenc777@gmail.com
-
-
 pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
 
 tickers = ["GC=F", "NVDA", "ORCL"]
-NEWS_API_KEY = "c04e133921644771a4c36cf1365dca5f"
-EMAIL_SENDER = "brogenc777@gmail.com"
-EMAIL_APP_PASSWORD = "lmuseaiehgirnjli"
+NEWS_API_KEY = os.getenv("NEWS_API_KEY", "PUT_YOUR_NEWS_API_KEY_HERE")
+EMAIL_SENDER = os.getenv("EMAIL_SENDER", "PUT_YOUR_EMAIL_HERE")
+EMAIL_APP_PASSWORD = os.getenv("EMAIL_APP_PASSWORD", "PUT_YOUR_APP_PASSWORD_HERE")
+DAILY_FEED_ICON_URL = os.getenv("DAILY_FEED_ICON_URL", "")
+SEND_EMAIL = os.getenv("SEND_EMAIL", "false").lower() == "true"
+SHOW_GRAPHS = os.getenv("SHOW_GRAPHS", "false").lower() == "true"
 REPORTS_DIR = Path("report_assets")
+
+if not DAILY_FEED_ICON_URL:
+    DAILY_FEED_ICON_URL = "https://raw.githubusercontent.com/BrogenC/DailyFeed/main/DailyFeedIcon.png"
 
 
 def download_prices(ticker, period, interval):
@@ -267,7 +269,7 @@ def build_graphs(ticker_symbol):
     plt.show()
 
 def fetch_news(category=None, sources=None, query=None, country="us", page_size=5):
-    api_key = os.getenv("NEWS_API_KEY", NEWS_API_KEY)
+    api_key = NEWS_API_KEY
     if not api_key or api_key == "PUT_YOUR_NEWS_API_KEY_HERE":
         raise ValueError("NEWS_API_KEY is not set.")
 
@@ -917,6 +919,9 @@ def build_html_email_v2(connection, chart_cids):
     selected_header = daily_header[index]
     selected_footer = daily_footer[index]
     generated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+    icon_html = ""
+    if DAILY_FEED_ICON_URL:
+        icon_html = f'<img class="icon" src="{DAILY_FEED_ICON_URL}" alt="Daily Feed Icon" />'
 
     sections_map = {"Top News": "", "Tech News": "", "Sports News": ""}
     featured_story_html = ""
@@ -1031,6 +1036,13 @@ def build_html_email_v2(connection, chart_cids):
             align-items: center;
             gap: 12px;
             margin-bottom: 6px;
+          }}
+          .icon {{
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            object-fit: cover;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
           }}
           .title {{
             font-size: 26px;
@@ -1176,6 +1188,7 @@ def build_html_email_v2(connection, chart_cids):
         <div class="container">
           <div class="hero">
             <div class="hero-top">
+              {icon_html}
               <h1 class="title">Daily Feed</h1>
             </div>
             <div class="date">Generated {generated_at}</div>
@@ -1206,11 +1219,16 @@ def build_html_email_v2(connection, chart_cids):
 
 
 def send_email_to_subscribers(connection, subject, text_body, html_body, chart_paths):
-    sender = "brogenc777@gmail.com"
-    app_password = "wlihhfbvohoumvrm"
+    sender = EMAIL_SENDER
+    app_password = EMAIL_APP_PASSWORD
     recipients = get_active_subscribers(connection)
 
-    if not sender or not app_password:
+    if (
+        not sender
+        or not app_password
+        or sender == "PUT_YOUR_EMAIL_HERE"
+        or app_password == "PUT_YOUR_APP_PASSWORD_HERE"
+    ):
         raise ValueError("EMAIL_SENDER or EMAIL_APP_PASSWORD is not set.")
 
     if not recipients:
@@ -1265,8 +1283,9 @@ def send_email_to_subscribers(connection, subject, text_body, html_body, chart_p
 
 
 
-build_graphs("NVDA")
-build_graphs("GC=F")
+if SHOW_GRAPHS:
+    build_graphs("NVDA")
+    build_graphs("GC=F")
 
 
 
@@ -1293,7 +1312,10 @@ print(get_active_subscribers(conn))
 text_email_body = build_news_email_body(conn)
 chart_images = prepare_email_chart_images(conn)
 html_email_body = build_html_email_v2(conn, chart_images)
-send_email_to_subscribers(conn, "Daily Feed", text_email_body, html_email_body, chart_images)
+if SEND_EMAIL:
+    send_email_to_subscribers(conn, "Daily Feed", text_email_body, html_email_body, chart_images)
+else:
+    print("SEND_EMAIL is false; skipping email send.")
 
 
 conn.close()
