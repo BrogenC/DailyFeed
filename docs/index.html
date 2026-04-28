@@ -134,21 +134,6 @@
       border: 1px solid rgba(255, 125, 38, 0.22);
     }
 
-    .status {
-      margin-top: 16px;
-      min-height: 24px;
-      font-size: 14px;
-      color: var(--muted);
-    }
-
-    .status.success {
-      color: #ffd8bf;
-    }
-
-    .status.error {
-      color: #ffb6a1;
-    }
-
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -171,7 +156,7 @@
     <section class="panel">
       <div class="eyebrow">Subscription Console</div>
       <h2>Manage your delivery</h2>
-      <p class="muted">Enter your email and submit directly. The backend updates <code>subscribers.txt</code> in GitHub for you.</p>
+      <p class="muted">Enter your email. GitHub will open a prefilled request for you and the automation will update <code>subscribers.txt</code>.</p>
 
       <div class="field">
         <label for="email">Email address</label>
@@ -182,58 +167,35 @@
         <button class="subscribe" id="subscribeBtn" type="button">Subscribe</button>
         <button class="unsubscribe" id="unsubscribeBtn" type="button">Unsubscribe</button>
       </div>
-
-      <div class="status" id="statusMessage"></div>
     </section>
 
 
   </main>
 
   <script>
-    const apiBaseUrl = "https://YOUR-WORKER-NAME.YOUR-SUBDOMAIN.workers.dev";
-    const statusMessage = document.getElementById("statusMessage");
+    const repoIssueBase = "https://github.com/BrogenC/DailyFeed/issues/new";
 
-    function setStatus(message, tone = "") {
-      statusMessage.textContent = message;
-      statusMessage.className = `status ${tone}`.trim();
-    }
-
-    async function submitRequest(type) {
+    function openRequest(type) {
       const email = document.getElementById("email").value.trim();
       if (!email) {
-        setStatus("Enter an email address first.", "error");
+        alert("Enter an email address first.");
         return;
       }
 
-      if (apiBaseUrl.includes("YOUR-WORKER-NAME")) {
-        setStatus("Set your deployed worker URL in docs/index.html before using the form.", "error");
-        return;
-      }
+      const title = type === "subscribe"
+        ? `Subscribe: ${email}`
+        : `Unsubscribe: ${email}`;
+      const labels = type === "subscribe"
+        ? "subscribe-request"
+        : "unsubscribe-request";
+      const body = `email: ${email}`;
 
-      setStatus("Submitting request...");
-
-      try {
-        const response = await fetch(apiBaseUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ action: type, email })
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || "Request failed.");
-        }
-
-        setStatus(data.message || "Request completed.", "success");
-      } catch (error) {
-        setStatus(error.message || "Unable to update subscription right now.", "error");
-      }
+      const url = `${repoIssueBase}?labels=${encodeURIComponent(labels)}&title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+      window.open(url, "_blank");
     }
 
-    document.getElementById("subscribeBtn").addEventListener("click", () => submitRequest("subscribe"));
-    document.getElementById("unsubscribeBtn").addEventListener("click", () => submitRequest("unsubscribe"));
+    document.getElementById("subscribeBtn").addEventListener("click", () => openRequest("subscribe"));
+    document.getElementById("unsubscribeBtn").addEventListener("click", () => openRequest("unsubscribe"));
   </script>
 </body>
 </html>
