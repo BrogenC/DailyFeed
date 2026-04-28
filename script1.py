@@ -143,7 +143,6 @@ def initialize_tables(connection):
 
 conn = sqlite3.connect("stocks.db")
 initialize_tables(conn)
-sync_subscribers_from_file(conn)
 
 for i, ticker in enumerate(tickers):
     write_mode = "replace" if i == 0 else "append"
@@ -411,6 +410,9 @@ def get_active_subscribers(connection):
         """
     )
     return [row[0] for row in cursor.fetchall()]
+
+
+sync_subscribers_from_file(conn)
 
 
 
