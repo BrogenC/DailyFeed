@@ -1,0 +1,30 @@
+name: Docker Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  docker-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t daily-feed .
+
+      - name: Run Docker container
+        env:
+          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+        run: |
+          docker run --rm \
+            -e NEWS_API_KEY="$NEWS_API_KEY" \
+            -e EMAIL_SENDER="$EMAIL_SENDER" \
+            -e EMAIL_APP_PASSWORD="$EMAIL_APP_PASSWORD" \
+            daily-feed
