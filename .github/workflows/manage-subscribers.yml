@@ -96,10 +96,3 @@ jobs:
               issue_number: issueNumber,
               state: 'closed'
             });
-            
-            // Delete the issue
-            await github.rest.issues.delete({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issueNumber
-            });
