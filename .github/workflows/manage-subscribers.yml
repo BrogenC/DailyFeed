@@ -96,3 +96,8 @@ jobs:
               issue_number: issueNumber,
               state: 'closed'
             });
+      
+      - name: Delete issue
+        run: gh issue delete ${{ github.event.issue.number }} --yes
+        env:
+          GH_TOKEN: ${{ github.token }}
