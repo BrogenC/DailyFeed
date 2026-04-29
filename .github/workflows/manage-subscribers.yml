@@ -61,7 +61,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add subscribers.txt stocks.db
+          git add subscribers.txt
           git commit -m "Process subscriber: ${{ steps.extract.outputs.action }} ${{ steps.extract.outputs.email }}" || true
           git push
       
