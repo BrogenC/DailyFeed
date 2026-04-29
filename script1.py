@@ -987,19 +987,27 @@ def build_html_email_v2(connection, chart_cids):
             </div>
             """
 
-        for section_title in ["Top News", "Tech News", "Sports News"]:
-            section_df = stored_news_df[stored_news_df["section_title"] == section_title]
-            if section_title == "Top News" and featured_story:
-                rows_to_render = remaining_top_articles
-            else:
-                rows_to_render = [
-                    {
-                        "title": row.article_title,
-                        "source": row.article_source or "Unknown source",
-                        "url": row.article_url,
-                    }
-                    for row in section_df.itertuples(index=False)
-                ]
+for section_title in ["Top News", "Tech News", "Sports News"]:
+    section_df = stored_news_df[stored_news_df["section_title"] == section_title]
+    if section_title == "Top News" and featured_story:
+        rows_to_render = [
+            {
+                "title": article["title"],
+                "source": article.get("source", {}).get("name", "Unknown source"),
+                "url": article.get("url"),
+            }
+            for article in remaining_top_articles
+        ]
+    else:
+        rows_to_render = [
+            {
+                "title": row.article_title,
+                "source": row.article_source or "Unknown source",
+                "url": row.article_url,
+            }
+            for row in section_df.itertuples(index=False)
+        ]
+
 
             stories_html = []
             for row in rows_to_render:
